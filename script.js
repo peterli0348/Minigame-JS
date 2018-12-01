@@ -1,262 +1,275 @@
-var clickHistory = [];
-var progress;
+// stores buttons clicked in grid to array
+let clickHistory = [];
+// shows completion status
+let progressBarStatus;
 
-function setup() { //initialize everything
-  fillFunctionButtons();
-  fillStatusText();
-  fillProgressBar();
-  fillMatrix();
-  setStatusText("Loaded succesfully!", "text-bold" );
+// initialize game
+function setup() { 
+	fillFunctionButtons();
+	fillStatusText();
+	fillProgressBar();
+	fillGrid();
+	setStatusText("Loaded succesfully!", "text-bold");
 }
 
 function fillFunctionButtons() {
-  var headDiv = document.getElementById("head");
-  var funcBtnRow = createRow();
-  // createButton(buttonText, styleClass, functionName);
-  funcBtnRow.appendChild(createButton("All Mid All Random", "btn btn-primary btn-sm m-3", "f1()"));
-  funcBtnRow.appendChild(createButton("Drop the beat", "btn btn-warning btn-sm m-3", "f2()"));
-  funcBtnRow.appendChild(createButton("Defile", "btn btn-dark btn-sm m-3", "f3()"));
-  funcBtnRow.appendChild(createButton("Puuurrrge!", "btn btn-light m-3", "f4()"));
-  headDiv.appendChild(funcBtnRow);
+	let headDiv = document.getElementById("head");
+	let functionButtonRow = createRow();
+	// createButton(buttonText, styleClass, functionName);
+	functionButtonRow.appendChild(createButton(
+			"All Mid All Random", "btn btn-primary btn-sm m-3", "f1()"));
+	functionButtonRow.appendChild(createButton(
+			"Drop the beat", "btn btn-warning btn-sm m-3", "f2()"));
+	functionButtonRow.appendChild(createButton(
+			"Defile", "btn btn-dark btn-sm m-3", "f3()"));
+	functionButtonRow.appendChild(createButton(
+			"Puuurrrge!", "btn btn-light m-3", "f4()"));
+	headDiv.appendChild(functionButtonRow);
 }
 
 function fillStatusText() {
-  var headDiv = document.getElementById("head");
-  var infoTextRow = createRow("ml-3");
-  infoTextRow.id = "infoText"; //set id of this element so we can change it later
-  headDiv.appendChild(infoTextRow);
+	let headDiv = document.getElementById("head");
+	// ml-3 sets left margin to 3 spacing
+	let statusRow = createRow("ml-3"); 
+	// sets id for later access
+	statusRow.id = "statusText";
+	headDiv.appendChild(statusRow);
 }
 
 function setStatusText(text, style) {
-  var textDiv = document.getElementById("infoText");
-  var newText = document.createElement("p");
-  if (style != null) {
-    newText.className = style;
-  }
-  newText.appendChild(document.createTextNode(text));
-  textDiv.innerHTML = "";
-  textDiv.appendChild(newText);
+	let textDiv = document.getElementById("statusText");
+	let newText = document.createElement("p");
+	if (style != null) {
+		newText.className = style;
+	}
+	newText.appendChild(document.createTextNode(text));
+	// removes old text
+	textDiv.innerHTML = "";
+	textDiv.appendChild(newText);
 }
 
 function fillProgressBar() {
-  var headDiv = document.getElementById("head");
-  var progessRow = createRow("progress");
-  progress = 0;
-  //a green colored bar
-  var bar = createProgressBar("bar", "bg-success", progress);
-  progessRow.appendChild(bar);
-  headDiv.appendChild(progessRow);
+	let headDiv = document.getElementById("head");
+	let progessRow = createRow("progress");
+	progressBarStatus = 0;
+	// bg-success sets background to green
+	let pogressBar = createProgressBar("bar", "bg-success", progressBarStatus);
+	progessRow.appendChild(pogressBar);
+	headDiv.appendChild(progessRow);
 }
 
-function fillMatrix() {
-  var matrix = document.getElementById("grid");
-  for (i = 0; i < 8; i++) {
-    var newRow = createRow("justify-content-md-center");
-    for (j = 0; j < 8; j++) {
-      newRow.appendChild(createDefaultButton(i, j));
-    }
-    matrix.appendChild(newRow);
-  }
+function fillGrid() {
+	let grid = document.getElementById("grid");
+	for (x = 0; x < 8; x++) {
+		// justify-content-md-center sets spacing to middle center
+		let buttonRow = createRow("justify-content-md-center");
+		for (y = 0; y < 8; y++) {
+			buttonRow.appendChild(createDefaultButton(x, y));
+		}
+		grid.appendChild(buttonRow);
+	}
 }
 
-function fillAllRandom() { //sample function 1
-  for (i = 0; i < 8; i++) {
-    for (j = 0; j < 8; j++) {
-      setButtonColor(i, j, getRandomColor());
-      setButtonText(i, j, getRandomNumber(1, 10));
-    }
-  }
+function fillAllRandom() {
+	for (x = 0; x < 8; x++) {
+		for (y = 0; y < 8; y++) {
+			setButtonColor(x, y, getRandomColor());
+			setButtonText(x, y, getRandomNumber(1, 10));
+		}
+	}
 }
 
-function drop() { //sample function 2
-  for (i = 7; i > 0; i--) {
-    for (j = 0; j < 8; j++) {
-      setButtonColor(i, j, getButtonColor(i-1, j));
-      setButtonText(i, j, getButtonText(i-1, j));
-    }
-  }
-  //for row 0
-    for (j = 0; j < 8; j++) {
-      setButtonColor(i, j, getRandomColor());
-      setButtonText(i, j, getRandomNumber(1, 10));
-    }
+function dropRow() {
+	// shifts button colors down one row
+	for (x = 7; x > 0; x--) {
+		for (y = 0; y < 8; y++) {
+			setButtonColor(x, y, getButtonColor(x - 1, y));
+			setButtonText(x, y, getButtonText(x - 1, y));
+		}
+	}
+	// sets new button colors for first row
+	for (y = 0; y < 8; y++) {
+		setButtonColor(x, y, getRandomColor());
+		setButtonText(x, y, getRandomNumber(1, 10));
+	}
 }
 
-function defile(number) { //sample function 3 (recursion and time)
-  if (number < 0) return;
-  for (n = 0; n < number; n++) {
-    setTimeout(function(){
-      var i = getRandomNumber(0, 7);
-      var j = getRandomNumber(0, 7);
-      setButtonColor(i, j, "black");
-      setButtonText(i, j, "");
-      setProgressBar("bar", "bg-danger", progress--);
-    }, (number+1)*number - n*n);
-  }
+// sets random buttons from grid to black
+function defile(amount) {
+	// base-case
+	if (amount < 0)
+		return;
+	for (defiled = 0; defiled < amount; defiled++) {
+		setTimeout(function() {
+			let randomx = getRandomNumber(0, 7);
+			let randomy = getRandomNumber(0, 7);
+			setButtonColor(randomx, randomy, "black");
+			setButtonText(randomx, randomy, "");
+			setProgressBar("bar", "bg-danger", progressBarStatus--);
+		}, (amount + 1) * amount - defiled * defiled);
+	}
 }
 
-function purge() { //sample function 4
-  for (i = 0; i < 8; i++) {
-    for (j = 0; j < 8; j++) {
-      setButtonColor(i, j, "white");
-      setButtonText(i, j, "");
-    }
-  }
-  progress = 0;
-  clickHistory = [];
-  setProgressBar("bar", "bg-success", progress);
+// resets grid
+function purge() { 
+	for (x = 0; x < 8; x++) {
+		for (y = 0; y < 8; y++) {
+			setButtonColor(x, y, "white");
+			setButtonText(x, y, "");
+		}
+	}
+	progressBarStatus = 0;
+	clickHistory = [];
+	setProgressBar("bar", "bg-success", progressBarStatus);
 }
 
 function f1() {
-  setStatusText("Fill with random colors");
-  fillAllRandom();
+	setStatusText("Fill with random colors");
+	fillAllRandom();
 }
 
 function f2() {
-  setStatusText("Drop everything by 1 row");
-  drop();
+	setStatusText("Drop everything by 1 row");
+	dropRow();
 }
 
 function f3() {
-  setStatusText("BAM! BAM! BAM!");
-  defile(32);
+	setStatusText("BAM! BAM! BAM!");
+	defile(32);
 }
 
 function f4() {
-  setStatusText("Reset EVERYTHING");
-  purge();
+	setStatusText("Reset EVERYTHING");
+	purge();
 }
 
-// helper functions below
-
 function createRow(className) {
-  var rowDiv = document.createElement("div");
-  if (className == null) {
-    rowDiv.className = "row";
-  } else {
-    rowDiv.className = "row " + className;
-  }
-  return rowDiv;
+	let rowDiv = document.createElement("div");
+	if (className == null) {
+		rowDiv.className = "row";
+	} else {
+		rowDiv.className = "row " + className;
+	}
+	return rowDiv;
+}
+
+// creates a white button with no text
+function createDefaultButton() {
+	let defaultButton = document.createElement("div");
+	defaultButton.className = "thumbnail";
+	defaultButton.setAttribute("onclick", "buttonClicked(" + x + "," + y + ")");
+	
+	let img = document.createElement("img");
+	img.id = "img_" + x + "_" + y;
+	img.setAttribute("src", "images/white.jpg");
+	img.setAttribute("alt", "white");
+	img.setAttribute("class", "rounded-circle");
+	img.setAttribute("width", "75");
+	img.setAttribute("height", "75");
+	
+	let text = document.createElement("label");
+	text.setAttribute("class", "caption unselectable");
+	text.id = "text_" + x + "_" + y;
+
+	defaultButton.appendChild(img);
+	defaultButton.appendChild(text);
+	return defaultButton;
 }
 
 function createButton(buttonText, styleClass, functionName) {
-  var button = document.createElement("button");
-  button.className = styleClass;
-  button.appendChild(document.createTextNode(buttonText));
-  button.setAttribute("onclick", functionName);
-  return button;
+	let button = document.createElement("button");
+	button.className = styleClass;
+	button.appendChild(document.createTextNode(buttonText));
+	button.setAttribute("onclick", functionName);
+	return button;
 }
 
-function createProgressBar(bar_id, color, value) {
-  var bar = document.createElement("div");
-  bar.id = bar_id;
-  bar.className = "progress-bar " + color;
-  bar.setAttribute("style", "width: " + value + "%");
-  return bar;
+function createProgressBar(id, color, value) {
+	let progressBar = document.createElement("div");
+	progressBar.id = id;
+	progressBar.className = "progress-bar " + color;
+	progressBar.setAttribute("style", "width: " + value + "%");
+	return progressBar;
 }
 
-function setProgressBar(bar_id, color, value) {
-  var bar = document.getElementById(bar_id);
-  bar.className = "progress-bar " + color;
-  bar.setAttribute("style", "width: " + value + "%");
-  bar.innerHTML = value + "%";
+function setProgressBar(id, color, value) {
+	let progressBar = document.getElementById(id);
+	progressBar.className = "progress-bar " + color;
+	progressBar.setAttribute("style", "width: " + value + "%");
+	progressBar.innerHTML = value + "%";
 }
 
-function createDefaultButton() {
-  var button = document.createElement("div");
-  button.className = "thumbnail";
-  button.setAttribute("onclick", "buttonClicked("+i+","+j+")");
-
-  //the image part
-  var img = document.createElement("img");
-  img.id = "img_" + i + "_" + j;
-  img.setAttribute("src", "images/white.jpg");
-  img.setAttribute("alt", "white");
-  img.setAttribute("class", "rounded-circle");
-  img.setAttribute("width", "75");
-  img.setAttribute("height", "75");
-
-  //the text part
-  var text = document.createElement("label");
-  text.setAttribute("class", "caption unselectable");
-  text.id = "text_" + i + "_" + j;
-
-  button.appendChild(img);
-  button.appendChild(text);
-  return button;
+function setButtonColor(x, y, color) {
+	let button = document.getElementById("img_" + x + "_" + y);
+	button.setAttribute("src", "images/" + color + ".jpg");
+	button.setAttribute("alt", color);
 }
 
-function setButtonColor(i, j, color) {
-  var button = document.getElementById("img_" + i + "_" + j);
-  button.setAttribute("src", "images/" + color + ".jpg");
-  button.setAttribute("alt", color);
+function setButtonText(x, y, text) {
+	let button = document.getElementById("text_" + x + "_" + y);
+	button.innerHTML = text;
 }
 
-function setButtonText(i, j, text) {
-  var button = document.getElementById("text_" + i + "_" + j);
-  button.innerHTML = text;
+function getButtonColor(x, y) {
+	let img = document.getElementById("img_" + x + "_" + y);
+	return img.getAttribute("alt");
 }
 
-function getButtonColor(i, j) {
-  var img = document.getElementById("img_" + i + "_" + j);
-  return img.getAttribute("alt");
-}
-
-function getButtonText(i, j) {
-  var text = document.getElementById("text_" + i + "_" + j);
-  return text.innerHTML;
+function getButtonText(x, y) {
+	let text = document.getElementById("text_" + x + "_" + y);
+	return text.innerHTML;
 }
 
 function getRandomColor() {
-  //you might want to change this to get more colors
-  var random = Math.floor(Math.random() * 4);
-  if (random < 1) {
-    return "red";
-  } else if (random < 2) {
-    return "green";
-  } else if (random < 3) {
-    return "turquoise";
-  }
-  return "yellow";
+	let colorChoice = getRandomNumber(0, 3);
+	if (colorChoice < 1)
+		return "red";
+	else if (colorChoice < 2)
+		return "yellow";
+	else if (colorChoice < 3)
+		return "green";
+	else 
+		return "turquoise";
 }
 
 function getRandomNumber(min, max) {
-  return min + Math.floor(Math.random() * (max - min + 1));
+	return min + Math.floor(Math.random() * (max - min + 1));
 }
 
-//console interaction functions
+// console interaction functions
 function logAllHistory() {
-  if (clickHistory.length == 0) {
-    console.log("History is empty");
-    return;
-  }
-  for (i = 0; i < clickHistory.length; i++) {
-    console.log(clickHistory[i]);
-  }
+	if (clickHistory.length == 0) {
+		console.log("History is empty");
+		return;
+	}
+	for (i = 0; i < clickHistory.length; i++) {
+		console.log(clickHistory[i]);
+	}
 }
 
 function logLastClicked() {
-  if (clickHistory.length == 0) {
-    console.log("History is empty");
-  } else {
-    console.log(clickHistory[clickHistory.length - 1]);
-  }
+	if (clickHistory.length == 0) {
+		console.log("History is empty");
+	} else {
+		console.log(clickHistory[clickHistory.length - 1]);
+	}
 }
 
-//this is what's triggered when any button in the matrix is pressed
+// runs when button in grid is clicked
+function buttonClicked(x, y) {
+	setStatusText("Button (" + x + ", " + y + ") pressed");
+	// divide 8 to get x value
+	// modulus 8 to get y value
+	clickHistory.push(x * 8 + y);
 
-function buttonClicked(i, j) { //this is where you should start
-  setStatusText("Button [" + i + ", " + j + "] pressed");
-  clickHistory.push(i*8 + j);
-  //set this button to a random color
-  setButtonColor(i, j, getRandomColor());
-  var currentText = getButtonText(i, j);
-  var textValue = 0;
-  if (currentText != "") {
-    textValue = parseInt(currentText, 10); //convert the text to base10 (decimal) number
-  }
-  setButtonText(i, j, textValue+1);
-  //increase the progress bar a bit
-  progress += textValue;
-  setProgressBar("bar", "bg-success", progress);
+	setButtonColor(x, y, getRandomColor());
+	let currentText = getButtonText(x, y);
+	let textValue = 0;
+	if (currentText != "") {
+		// makes sure textValue is base10
+		textValue = parseInt(currentText);
+	}
+	setButtonText(x, y, textValue + 1);
+	progressBarStatus += textValue;
+	setProgressBar("bar", "bg-success", progressBarStatus);
 }
