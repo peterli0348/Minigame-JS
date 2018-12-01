@@ -1,10 +1,19 @@
 // stores buttons clicked in grid to array
-let clickHistory = [];
+let clickHistory;
 // shows completion status
 let progressBarStatus;
+let xSize;
+let ySize;
+
+function setVariables() {
+	xSize = 8;
+	ySize = 8;
+	resetClickHistory();
+}
 
 // initialize game
 function setup() { 
+	setVariables();
 	fillFunctionButtons();
 	fillStatusText();
 	fillProgressBar();
@@ -51,19 +60,18 @@ function setStatusText(text, style) {
 function fillProgressBar() {
 	let headDiv = document.getElementById("head");
 	let progessRow = createRow("progress");
-	progressBarStatus = 0;
 	// bg-success sets background to green
-	let pogressBar = createProgressBar("bar", "bg-success", progressBarStatus);
+	let pogressBar = createProgressBar("bar", "bg-success", resetProgress());
 	progessRow.appendChild(pogressBar);
 	headDiv.appendChild(progessRow);
 }
 
 function fillGrid() {
 	let grid = document.getElementById("grid");
-	for (x = 0; x < 8; x++) {
+	for (x = 0; x < xSize; x++) {
 		// justify-content-md-center sets spacing to middle center
 		let buttonRow = createRow("justify-content-md-center");
-		for (y = 0; y < 8; y++) {
+		for (y = 0; y < ySize; y++) {
 			buttonRow.appendChild(createDefaultButton(x, y));
 		}
 		grid.appendChild(buttonRow);
@@ -71,8 +79,8 @@ function fillGrid() {
 }
 
 function fillAllRandom() {
-	for (x = 0; x < 8; x++) {
-		for (y = 0; y < 8; y++) {
+	for (x = 0; x < xSize; x++) {
+		for (y = 0; y < ySize; y++) {
 			setButtonColor(x, y, getRandomColor());
 			setButtonText(x, y, getRandomNumber(1, 10));
 		}
@@ -81,46 +89,69 @@ function fillAllRandom() {
 
 function dropRow() {
 	// shifts button colors down one row
-	for (x = 7; x > 0; x--) {
-		for (y = 0; y < 8; y++) {
+	for (x = xSize - 1; x > 0; x--) {
+		for (y = 0; y < ySize; y++) {
 			setButtonColor(x, y, getButtonColor(x - 1, y));
 			setButtonText(x, y, getButtonText(x - 1, y));
 		}
 	}
 	// sets new button colors for first row
-	for (y = 0; y < 8; y++) {
+	for (y = 0; y < ySize; y++) {
 		setButtonColor(x, y, getRandomColor());
 		setButtonText(x, y, getRandomNumber(1, 10));
 	}
 }
 
 // sets random buttons from grid to black
-function defile(amount) {
+function destroy(amount) {
 	// base-case
 	if (amount < 0)
 		return;
-	for (defiled = 0; defiled < amount; defiled++) {
+	for (destroyed = 0; destroyed < amount; destroyed++) {
+		// if all buttons are already destroyed
+		if (allDestroyed()) break;
 		setTimeout(function() {
+			// gets coordinates to random button
 			let randomx = getRandomNumber(0, 7);
 			let randomy = getRandomNumber(0, 7);
+			// while button is already destroyed
+			while (getButtonColor(randomx, randomy) === "black") {
+				// gets coordinates to another random button
+				randomx = getRandomNumber(0, 7);
+				randomy = getRandomNumber(0, 7);
+				if (allDestroyed()) break;
+			}
 			setButtonColor(randomx, randomy, "black");
 			setButtonText(randomx, randomy, "");
-			setProgressBar("bar", "bg-danger", progressBarStatus--);
-		}, (amount + 1) * amount - defiled * defiled);
+			// lowers progressBarStatus by one when button destroyed
+			setProgressBar("bar", "bg-danger", decreaseProgress());
+		// algorithm for animation speed
+		}, (amount + destroyed) * (amount - destroyed +1));
 	}
+}
+
+// true if grid all black
+function allDestroyed() {
+	for (x = 0; x < xSize; x++) {
+		for (y = 0; y < ySize; y++) {
+			if (getButtonColor(x, y) != "black") {
+				return false;
+			}
+		}
+	}
+	return true;
 }
 
 // resets grid
 function purge() { 
-	for (x = 0; x < 8; x++) {
-		for (y = 0; y < 8; y++) {
+	for (x = 0; x < xSize; x++) {
+		for (y = 0; y < ySize; y++) {
 			setButtonColor(x, y, "white");
 			setButtonText(x, y, "");
 		}
 	}
-	progressBarStatus = 0;
 	clickHistory = [];
-	setProgressBar("bar", "bg-success", progressBarStatus);
+	setProgressBar("bar", "bg-success", resetProgress());
 }
 
 function f1() {
@@ -135,7 +166,7 @@ function f2() {
 
 function f3() {
 	setStatusText("BAM! BAM! BAM!");
-	defile(32);
+	destroy(16);
 }
 
 function f4() {
@@ -152,6 +183,8 @@ function createRow(className) {
 	}
 	return rowDiv;
 }
+
+// create functions
 
 // creates a white button with no text
 function createDefaultButton() {
@@ -192,12 +225,7 @@ function createProgressBar(id, color, value) {
 	return progressBar;
 }
 
-function setProgressBar(id, color, value) {
-	let progressBar = document.getElementById(id);
-	progressBar.className = "progress-bar " + color;
-	progressBar.setAttribute("style", "width: " + value + "%");
-	progressBar.innerHTML = value + "%";
-}
+// set functions
 
 function setButtonColor(x, y, color) {
 	let button = document.getElementById("img_" + x + "_" + y);
@@ -209,6 +237,35 @@ function setButtonText(x, y, text) {
 	let button = document.getElementById("text_" + x + "_" + y);
 	button.innerHTML = text;
 }
+
+function setProgressBar(id, color, value) {
+	let progressBar = document.getElementById(id);
+	progressBar.className = "progress-bar " + color;
+	progressBar.setAttribute("style", "width: " + value + "%");
+	progressBar.innerHTML = value + "%";
+}
+
+function increaseProgress(amount) {
+	if (amount == null)
+		return ++progressBarStatus;
+	else return progressBarStatus += amount;
+}
+
+function decreaseProgress(amount) {
+	if (amount == null)
+		return --progressBarStatus;
+	else return progressBarStatus -= amount;
+}
+
+function resetProgress() {
+	return progressBarStatus = 0;
+}
+
+function resetClickHistory() {
+	clickHistory = [];
+}
+
+// get functions
 
 function getButtonColor(x, y) {
 	let img = document.getElementById("img_" + x + "_" + y);
@@ -237,6 +294,7 @@ function getRandomNumber(min, max) {
 }
 
 // console interaction functions
+
 function logAllHistory() {
 	if (clickHistory.length == 0) {
 		console.log("History is empty");
@@ -270,6 +328,5 @@ function buttonClicked(x, y) {
 		textValue = parseInt(currentText);
 	}
 	setButtonText(x, y, textValue + 1);
-	progressBarStatus += textValue;
-	setProgressBar("bar", "bg-success", progressBarStatus);
+	setProgressBar("bar", "bg-success", increaseProgress(textValue));
 }
