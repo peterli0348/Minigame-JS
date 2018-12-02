@@ -2,12 +2,14 @@
 let clickHistory;
 // shows completion status
 let progressBarStatus;
+let switchable;
 let xSize;
 let ySize;
 
 function setVariables() {
 	xSize = 8;
 	ySize = 8;
+	switchable = true;
 	resetClickHistory();
 }
 
@@ -76,15 +78,38 @@ function fillGrid() {
 		}
 		grid.appendChild(buttonRow);
 	}
+	fillAllRandom();
 }
 
+// fills grid with random colors from top to bottom and left to right
 function fillAllRandom() {
+	switchable = true;
 	for (x = 0; x < xSize; x++) {
 		for (y = 0; y < ySize; y++) {
 			setButtonColor(x, y, getRandomColor());
-			setButtonText(x, y, getRandomNumber(1, 10));
+			// sets another color if button makes combo
+			if (fillAllRandomCombo(x, y)) y--;
 		}
 	}
+}
+
+// true if 3 buttons with same color line up when filling grid
+// only checks to the left and top of button(x, y)
+function fillAllRandomCombo(x ,y) {
+	let sameColor = getButtonColor(x, y);
+	// if combo in same row
+	if (y > 0 
+		&& getButtonColor(x, y - 1) === sameColor 
+		// change "y > 0" to "y > 1" if including next line
+		// && getButtonColor(x, y - 2) === sameColor
+		) return true;
+	// if combo in same column
+	if (x > 0 
+		&& getButtonColor(x - 1, y) === sameColor 
+		// change "x > 1" to "x > 1" if including next line
+		// && getButtonColor(x - 2, y) === sameColor
+		) return true;
+	return false;
 }
 
 function dropRow() {
@@ -98,8 +123,24 @@ function dropRow() {
 	// sets new button colors for first row
 	for (y = 0; y < ySize; y++) {
 		setButtonColor(x, y, getRandomColor());
-		setButtonText(x, y, getRandomNumber(1, 10));
+		// sets another color if button makes combo
+		if(dropRowCombo(x, y)) y--;
 	}
+}
+
+// true if 3 buttons with same color line up when dropping row
+// only checks left and bottom of button(x, y)
+function dropRowCombo(x, y) {
+	let sameColor = getButtonColor(x, y);
+	if (y > 0
+		&& getButtonColor(x, y - 1) === sameColor 
+		// change "y > 0" to "y > 1" if including next line
+		// && getButtonColor(x, y - 2) === sameColor
+		) return true;
+	if (getButtonColor(x + 1, y) === sameColor 
+		// && getButtonColor(x + 2, y) === sameColor
+		) return true;
+	return false;
 }
 
 // sets random buttons from grid to black
@@ -277,6 +318,14 @@ function getButtonText(x, y) {
 	return text.innerHTML;
 }
 
+function getLastClicked() {
+	if (clickHistory.length == 0) {
+		return null;
+	} else {
+		return clickHistory[clickHistory.length - 1];
+	}
+}
+
 function getRandomColor() {
 	let colorChoice = getRandomNumber(0, 3);
 	if (colorChoice < 1)
@@ -316,17 +365,24 @@ function logLastClicked() {
 // runs when button in grid is clicked
 function buttonClicked(x, y) {
 	setStatusText("Button (" + x + ", " + y + ") pressed");
+	let currentColor = getButtonColor(x, y);
+	if (clickHistory.length > 0) {
+		let lastx = Math.floor(getLastClicked() / 8);
+		let lasty = (getLastClicked() % 8);
+		let lastColor = getButtonColor(lastx, lasty);
+		
+		if (Math.abs((lastx - x) - (lasty - y)) == 1 && switchable) {
+			setTimeout(function() {
+				switchable = false;
+				setButtonColor(x, y, lastColor);
+				setButtonColor(lastx, lasty, currentColor);
+			}, 1);
+		}
+		if (!switchable) switchable = true;
+	}
+	
 	// divide 8 to get x value
 	// modulus 8 to get y value
-	clickHistory.push(x * 8 + y);
-
-	setButtonColor(x, y, getRandomColor());
-	let currentText = getButtonText(x, y);
-	let textValue = 0;
-	if (currentText != "") {
-		// makes sure textValue is base10
-		textValue = parseInt(currentText);
-	}
-	setButtonText(x, y, textValue + 1);
-	setProgressBar("bar", "bg-success", increaseProgress(textValue));
+	clickHistory.push(x * 8 + y);	
+	setProgressBar("bar", "bg-success", increaseProgress());
 }
