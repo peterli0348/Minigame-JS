@@ -98,17 +98,21 @@ function fillAllRandom() {
 function fillAllRandomCombo(x ,y) {
 	let sameColor = getButtonColor(x, y);
 	// if combo in same row
-	if (y > 0 
+	if (y > 0 // y > 1
 		&& getButtonColor(x, y - 1) === sameColor 
 		// change "y > 0" to "y > 1" if including next line
-		// && getButtonColor(x, y - 2) === sameColor
-		) return true;
+//		&& getButtonColor(x, y - 2) === sameColor
+	) {
+		return true;
+	}
 	// if combo in same column
-	if (x > 0 
+	if (x > 0 // x > 1
 		&& getButtonColor(x - 1, y) === sameColor 
-		// change "x > 1" to "x > 1" if including next line
-		// && getButtonColor(x - 2, y) === sameColor
-		) return true;
+		// change "x > 0" to "x > 1" if including next line
+//		&& getButtonColor(x - 2, y) === sameColor
+	) {
+		return true;
+	}
 	return false;
 }
 
@@ -135,19 +139,22 @@ function dropRowCombo(x, y) {
 	if (y > 0
 		&& getButtonColor(x, y - 1) === sameColor 
 		// change "y > 0" to "y > 1" if including next line
-		// && getButtonColor(x, y - 2) === sameColor
-		) return true;
+//		&& getButtonColor(x, y - 2) === sameColor
+	) {
+		return true;
+	}
 	if (getButtonColor(x + 1, y) === sameColor 
-		// && getButtonColor(x + 2, y) === sameColor
-		) return true;
+//		&& getButtonColor(x + 2, y) === sameColor
+	) {
+		return true;
+	}
 	return false;
 }
 
 // sets random buttons from grid to black
 function destroy(amount) {
 	// base-case
-	if (amount < 0)
-		return;
+	if (amount < 0) return;
 	for (destroyed = 0; destroyed < amount; destroyed++) {
 		// if all buttons are already destroyed
 		if (allDestroyed()) break;
@@ -364,19 +371,29 @@ function logLastClicked() {
 
 // runs when button in grid is clicked
 function buttonClicked(x, y) {
-	setStatusText("Button (" + x + ", " + y + ") pressed");
+	setStatusText("Button (" + x + ", " + y + ") clicked");
 	let currentColor = getButtonColor(x, y);
 	if (clickHistory.length > 0) {
 		let lastx = Math.floor(getLastClicked() / 8);
 		let lasty = (getLastClicked() % 8);
 		let lastColor = getButtonColor(lastx, lasty);
-		
-		if (Math.abs((lastx - x) - (lasty - y)) == 1 && switchable) {
-			setTimeout(function() {
-				switchable = false;
-				setButtonColor(x, y, lastColor);
-				setButtonColor(lastx, lasty, currentColor);
-			}, 1);
+		if (switchable
+			// and lastx is 1 row away from x
+			&& Math.abs(lastx - x) < 2 
+			// and lasty is 1 column away from y
+			&& Math.abs(lasty - y) < 2 
+			// and (lastx, lasty) is not diagonal to (x, y)
+			&& Math.abs(lastx - x) + Math.abs(lasty - y) < 2
+		) {
+				setTimeout(function() {
+					// sets switchable to false after buttonClick() is done running
+					// this prevents a switch if next button clicked is next to (x, y)
+					switchable = false;
+					setButtonColor(x, y, lastColor);
+					setButtonColor(lastx, lasty, currentColor);
+				}, 1);
+				
+//				console.log("Button (" + lastx + ", " + lasty + ") " + "<-> " + "Button (" + x + ", " + y + ")\t" + lastColor + " <-> " + currentColor);
 		}
 		if (!switchable) switchable = true;
 	}
