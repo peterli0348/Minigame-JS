@@ -4,13 +4,23 @@ let clickHistory;
 let progressBarStatus;
 // helps determine if button can be swapped with another
 let swappable;
+// size of grid
 let xSize;
 let ySize;
+// status of dropping action
+let dropping;
+// color of cleared button
+let clearedButtonColor;
+// interval for checking cleared buttons
+let interval;
 
 function setVariables() {
 	xSize = 8;
 	ySize = 8;
+	clearedButtonColor = "black";
+	interval = 100;
 	swappable = true;
+	dropping = false;
 	resetClickHistory();
 }
 
@@ -22,6 +32,12 @@ function setup() {
 	fillProgressBar();
 	fillGrid();
 	setStatusText("Loaded succesfully!", "text-bold");
+	// checks for cleared buttons
+	let checkForCleared = setInterval(dropCleared, interval);
+}
+
+function test() {
+	console.log("test");
 }
 
 function fillFunctionButtons() {
@@ -71,10 +87,10 @@ function fillProgressBar() {
 
 function fillGrid() {
 	let grid = document.getElementById("grid");
-	for (x = 0; x < xSize; x++) {
+	for (x = 0 ; x < xSize ; x++) {
 		// justify-content-md-center sets spacing to middle center
 		let buttonRow = createRow("justify-content-md-center");
-		for (y = 0; y < ySize; y++) {
+		for (y = 0 ; y < ySize ; y++) {
 			buttonRow.appendChild(createDefaultButton(x, y));
 		}
 		grid.appendChild(buttonRow);
@@ -85,11 +101,11 @@ function fillGrid() {
 // fills grid with random colors from top to bottom and left to right
 function fillAllRandom() {
 	swappable = true;
-	for (x = 0; x < xSize; x++) {
-		for (y = 0; y < ySize; y++) {
+	for (x = 0 ; x < xSize ; x++) {
+		for (y = 0 ; y < ySize ; y++) {
 			setButtonColor(x, y, getRandomColor());
 			// sets another color if button makes combo
-			if (fillAllRandomCombo(x, y)) {
+			if (fillAllRandomCreateCombo(x, y)) {
 				y--;
 			}
 		}
@@ -98,21 +114,21 @@ function fillAllRandom() {
 
 // true if 3 buttons with same color line up when filling grid
 // only checks to the left and top of button(x, y)
-function fillAllRandomCombo(x ,y) {
+function fillAllRandomCreateCombo(x ,y) {
 	let sameColor = getButtonColor(x, y);
 	// if combo in same row
-	if (y > 0 // y > 1
+	if (y > 1 // y > 1
 		&& getButtonColor(x, y - 1) == sameColor
 		// change "y > 0" to "y > 1" if including next line
-//		&& getButtonColor(x, y - 2) == sameColor
+		&& getButtonColor(x, y - 2) == sameColor
 	) {
 		return true;
 	}
 	// if combo in same column
-	if (x > 0 // x > 1
+	if (x > 1 // x > 1
 		&& getButtonColor(x - 1, y) == sameColor
 		// change "x > 0" to "x > 1" if including next line
-//		&& getButtonColor(x - 2, y) == sameColor
+		&& getButtonColor(x - 2, y) == sameColor
 	) {
 		return true;
 	}
@@ -121,14 +137,14 @@ function fillAllRandomCombo(x ,y) {
 
 function dropRow() {
 	// shifts button colors down one row
-	for (x = xSize - 1; x > 0; x--) {
-		for (y = 0; y < ySize; y++) {
+	for (x = xSize - 1 ; x > 0 ; x--) {
+		for (y = 0 ; y < ySize ; y++) {
 			setButtonColor(x, y, getButtonColor(x - 1, y));
 			setButtonText(x, y, getButtonText(x - 1, y));
 		}
 	}
 	// sets new button colors for first row
-	for (y = 0; y < ySize; y++) {
+	for (y = 0 ; y < ySize ; y++) {
 		setButtonColor(x, y, getRandomColor());
 		// sets another color if button makes combo
 		if(dropRowCreateCombo(x, y)) {
@@ -156,11 +172,11 @@ function dropRowCreateCombo(x, y) {
 	return false;
 }
 
-// sets random buttons from grid to black
+// sets random buttons from grid to clearedButtonColor
 function destroy(amount) {
 	// base-case
 	if (amount < 0) return;
-	for (destroyed = 0; destroyed < amount; destroyed++) {
+	for (destroyed = 0 ; destroyed < amount ; destroyed++) {
 		// if all buttons are already destroyed
 		if (allDestroyed()) 
 			break;
@@ -174,7 +190,7 @@ function destroyButton() {
 	let randomx = getRandomNumber(0, 7);
 	let randomy = getRandomNumber(0, 7);
 	// while button is already destroyed
-	while (getButtonColor(randomx, randomy) == "black") {
+	while (getButtonColor(randomx, randomy) == clearedButtonColor) {
 		// gets coordinates to another random button
 		randomx = getRandomNumber(0, 7);
 		randomy = getRandomNumber(0, 7);
@@ -182,17 +198,17 @@ function destroyButton() {
 			break;
 		}
 	}
-	setButtonColor(randomx, randomy, "black");
+	setButtonColor(randomx, randomy, clearedButtonColor);
 	setButtonText(randomx, randomy, "");
 	// lowers progressBarStatus by one when button destroyed
 	setProgressBar("bar", "bg-danger", decreaseProgress());
 }
 
-// helper function: true if grid all black
+// helper function: true if grid all is clearedButtonColor
 function allDestroyed() {
-	for (x = 0; x < xSize; x++) {
-		for (y = 0; y < ySize; y++) {
-			if (getButtonColor(x, y) != "black") {
+	for (x = 0 ; x < xSize ; x++) {
+		for (y = 0 ; y < ySize ; y++) {
+			if (getButtonColor(x, y) != clearedButtonColor) {
 				return false;
 			}
 		}
@@ -202,8 +218,8 @@ function allDestroyed() {
 
 // resets grid
 function purge() { 
-	for (x = 0; x < xSize; x++) {
-		for (y = 0; y < ySize; y++) {
+	for (x = 0 ; x < xSize ; x++) {
+		for (y = 0 ; y < ySize ; y++) {
 			setButtonColor(x, y, "white");
 			setButtonText(x, y, "");
 		}
@@ -244,7 +260,6 @@ function createRow(className) {
 	return rowDiv;
 }
 
-// creates a white button with no text
 function createDefaultButton() {
 	let defaultButton = document.createElement("div");
 	defaultButton.className = "thumbnail";
@@ -371,7 +386,7 @@ function logAllHistory() {
 		console.log("History is empty");
 		return;
 	}
-	for (i = 0; i < clickHistory.length; i++) {
+	for (i = 0 ; i < clickHistory.length ; i++) {
 		console.log(clickHistory[i]);
 	}
 }
@@ -387,15 +402,16 @@ function logLastClicked() {
 // runs when button in grid is clicked
 function buttonClicked(x, y) {
 	setStatusText("Button (" + x + ", " + y + ") clicked");
-	if (clickHistory.length > 0) {		
+	if (clickHistory.length > 0) {	
+		// gets coordinates of last button pressed
 		let lastx = Math.floor(getLastClicked() / 8);
-		let lasty = (getLastClicked() % 8);		
+		let lasty = (getLastClicked() % 8);	
 		let lastColor = getButtonColor(lastx, lasty);
 		let currentColor = getButtonColor(x, y);
+		// if button 
 		if (canSwap(x, y, lastx, lasty)) {
 			swap(x, y, lastx, lasty, currentColor, lastColor);
 		}
-//			console.log("Button (" + lastx + ", " + lasty + ") " + "<-> " + "Button (" + x + ", " + y + ")\t" + lastColor + " <-> " + currentColor);
 	}
 	if (!swappable) {
 		swappable = true;
@@ -403,23 +419,92 @@ function buttonClicked(x, y) {
 	// divide 8 to get x value
 	// modulus 8 to get y value
 	clickHistory.push(x * 8 + y);	
-	setProgressBar("bar", "bg-success", increaseProgress());
+}
+
+// shifts down any cleared buttons
+function dropCleared(row) {
+	// if row is not given find a row
+	if (row == null) {
+		// finds first row with cleared button
+		row = checkForCleared();
+	}
+	// while row is in grid drop cleared buttons
+	if (row < xSize) {
+		// still dropping cleared buttons
+		dropping = true;
+		// drop cleared buttons in row before going to next row
+		setTimeout(function() {
+			// if clear button was dropped check next row
+			if (dropClearedRow(row)) {
+				row++;
+				dropCleared(row);
+			// else stop dropping
+			} else {
+				dropping = false;
+			}
+		}, 100);
+	// else no longer dropping cleared buttons
+	} else {
+		dropping = false;
+	}
+}
+
+// helper function: finds row with cleared button
+function checkForCleared() {
+	// only runs if a drop isn't alreay occuring
+	if (!dropping) {
+		for (x = 0 ; x < xSize ; x++) {
+			for (y = 0 ; y < ySize ; y++) {
+				if (getButtonColor(x, y) == clearedButtonColor) {
+					// returns the row with cleared button
+					return x;
+				}
+			}
+		}
+		// returns row outside of grid if no cleared buttons found
+		return xSize + 1;
+	}
+}
+
+// helper function: checks row for cleared buttons to shift down
+function dropClearedRow(row) {
+	let clearButtonDropped = false;
+	// loops through all buttons in row
+	for (y = 0 ; y < ySize ; y++) {
+		// if button is cleared
+		if (getButtonColor(row, y) == clearedButtonColor) {
+			// shift down
+			for (x = row ; x > 0 ; x--) {
+				setButtonColor(x, y, getButtonColor(x - 1, y));
+				setButtonText(x, y, getButtonText(x - 1, y));	
+			}
+			setButtonColor(0, y, getRandomColor());
+			clearButtonDropped = true;
+		}
+	}
+	return clearButtonDropped;
 }
 
 // swaps the color of two buttons
 function swap(x, y, lastx, lasty, currentColor, lastColor) {
-	// sets swappable to false after functions are done running
-	// which prevents a switch if next button clicked is next to (x, y)
-	setTimeout(function() { swappable = false; }, 1);
 	setButtonColor(x, y, lastColor);
 	setButtonColor(lastx, lasty, currentColor);
+	// sets swappable to false after functions are done running
+	// which prevents a switch if next button clicked is next to (x, y)
+	setTimeout(function() { 
+		swappable = false; 
+		clearCombo(x, y, lastx, lasty, lastColor);
+		clearCombo(lastx, lasty, x, y, currentColor);
+		//dropCombo();
+		}, 0);	
 }
 
 // checks if two buttons meet all requirements to swap
 function canSwap(x ,y, lastx, lasty) {
 	if (swappable 
 		&& swappablePosition(x, y, lastx, lasty)
-		&& (makesCombo(x, y, lastx, lasty) > 2 || makesCombo(lastx, lasty, x, y) > 2)
+		&& (checkCombo(x, y, lastx, lasty) > 2 
+			|| checkCombo(lastx, lasty, x, y) > 2)
 	) {
 		return true;
 	}
@@ -442,22 +527,28 @@ function swappablePosition(x, y, lastx, lasty) {
 	return false;
 }
 
-// returns combo if greater or equal to 3
-function makesCombo(x, y, lastx, lasty) {
+// helper function (check): returns amount of same-color buttons
+
+function checkCombo(x, y, lastx, lasty) {
 	let combo = 0;
+	// gets color being swapped to (x, y)
 	let color = getButtonColor(lastx, lasty);
 	let verticalCount = checkVertical(x, y, lastx, color);
 	let horizontalCount = checkHorizontal(x, y, lasty, color);
+	// if vertical makes combo
 	if (verticalCount > 2) {
 		combo += verticalCount;
 	}
+	// if horizontal makes combo
 	if (horizontalCount > 2) {
 		combo += horizontalCount;
 	}
-	return combo;
+	if (combo > 2) {
+		return combo;
+	}
+	return 0;
 }
 
-// helper function: returns vertical combo
 function checkVertical(x, y, lastx, color) {
 	let verticalCount = 1;
 	// if x is not top row and swap direction is not down 
@@ -471,7 +562,6 @@ function checkVertical(x, y, lastx, color) {
 	return verticalCount;
 }
 
-// helper function: returns horizontal combo
 function checkHorizontal(x, y, lasty, color) {
 	let horizontalCount = 1;
 	// if y is not leftmost row and swap direction is not right
@@ -485,10 +575,10 @@ function checkHorizontal(x, y, lasty, color) {
 	return horizontalCount;
 }
 
-// helper function: returns amount of same-color buttons above button(x, y)
 function checkAbove(x, y, color) {
 	let aboveCount = 0;
-	for (i = x ; i > 0; i--) {
+	// while buttons above are same color
+	for (i = x ; i > 0 ; i--) {
 		if (getButtonColor(i - 1, y) == color) {
 			aboveCount++;
 		} else break;
@@ -496,10 +586,10 @@ function checkAbove(x, y, color) {
 	return aboveCount;
 }
 
-// helper function: returns amount of same-color buttons below button(x, y)
 function checkBelow(x, y, color) {
 	let belowCount = 0;
-	for (i = x ; i < xSize - 1; i++) {
+	// while buttons below are same color
+	for (i = x ; i < xSize - 1 ; i++) {
 		if (getButtonColor(i + 1, y) == color) {
 			belowCount++;
 		} else break;
@@ -507,10 +597,10 @@ function checkBelow(x, y, color) {
 	return belowCount;
 }
 
-// helper function: returns amount of same-color buttons left of button(x, y)
 function checkLeft(x, y, color) {
 	let leftCount = 0;
-	for (i = y; i > 0; i--) {
+	// while buttons to left are same color
+	for (i = y ; i > 0 ; i--) {
 		if (getButtonColor(x, i - 1) == color) {
 			leftCount++;
 		} else break;
@@ -518,13 +608,76 @@ function checkLeft(x, y, color) {
 	return leftCount;
 }
 
-// helper function: returns amount of same-color buttons right of button(x, y)
 function checkRight(x, y, color) {
 	let rightCount = 0;
-	for (i = y; i < ySize - 1; i++) {
+	// while buttons to right are same color
+	for (i = y ; i < ySize - 1 ; i++) {
 		if (getButtonColor(x, i + 1) == color) {
 			rightCount++;
 		} else break;
 	}
 	return rightCount;
+}
+
+//helper function (clear): sets button color to clearedButtonColor
+
+function clearCombo(x, y, lastx, lasty, color) {
+	if (checkVertical(x, y, lastx, color) > 2) {
+		setButtonColor(x, y, clearedButtonColor);
+		clearVerticalCombo(x, y, lastx, color)
+	}
+	if (checkHorizontal(x, y, lasty, color) > 2) {
+		setButtonColor(x, y, clearedButtonColor);
+		clearHorizontalCombo(x, y, lasty, color);
+	}
+}
+
+function clearVerticalCombo(x, y, lastx, color) {
+	// if x is not top row and swap direction is not down 
+	if (x > 0 && x <= lastx) {
+		clearAbove(x, y, color);
+	}
+	// if x is not bottom row and swap direction is not up 
+	if (x < xSize - 1 && x >= lastx) {
+		clearBelow(x, y, color);
+	}
+}
+
+function clearHorizontalCombo(x, y, lasty, color) {
+	// if y is not leftmost row and swap direction is not right
+	if (y > 0 && y <= lasty) {
+		clearLeft(x, y, color);
+	}
+	// if y is not rightmost row and swap direction is not left 
+	if (y < ySize - 1 && y >= lasty) {
+		clearRight(x, y, color);
+	}
+}
+
+function clearAbove(x, y, color) {
+	let clearAmount = checkAbove(x, y, color);
+	for (i = 1 ; i <= clearAmount ; i++) {
+		setButtonColor(x - i, y, clearedButtonColor);
+	}
+}
+
+function clearBelow(x, y, color) {
+	let clearAmount = checkBelow(x, y, color);
+	for (i = 1 ; i <= clearAmount ; i++) {
+		setButtonColor(x + i, y, clearedButtonColor);
+	}
+}
+
+function clearLeft(x, y, color) {
+	let clearAmount = checkLeft(x, y, color);
+	for (i = 1 ; i <= clearAmount ; i++) {
+		setButtonColor(x, y - i, clearedButtonColor);
+	}
+}
+
+function clearRight(x, y, color) {
+	let clearAmount = checkRight(x, y, color);
+	for (i = 1 ; i <= clearAmount ; i++) {
+		setButtonColor(x, y + i, clearedButtonColor);
+	}
 }
