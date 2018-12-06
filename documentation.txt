@@ -1,0 +1,18 @@
+// Peter Li
+// 23375692
+
+// funtions in script_match-3.js that are commented out have minor changes that are applied in script.js
+// other functions that have insignificant changes are left in script.js
+
+// Additional Documentation can be found at
+// https://github.com/peterli0348/Minigame-JS/commits/scout
+
+// Game: Match-3
+
+// checkForCleared constantly checks for any matches that have been cleared and shifts the cleared buttons down
+// checkForMatch constantly checks for any matches that may have occurred after a shift
+// checkForWinCondition constantly checks the progress and adds colors or increases match conditions
+
+// Reset Level button resets the grid with the same amount of colors and match condition
+// Increase Difficulty button resets the grid with an increased amount of colors. If all colors are available, the amount of colors are reset and match condition is increased to a maximum of match-6
+
