@@ -65,10 +65,10 @@ function fillFunctionButtons() {
 	// createButton(buttonText, styleClass, functionName);
 	functionButtonRow.appendChild(createButton(
 			"Reset Level", "btn btn-primary btn-sm m-3", "f1()"));
+//	functionButtonRow.appendChild(createButton(
+//			"New Row", "btn btn-warning btn-sm m-3", "f2()"));
 	functionButtonRow.appendChild(createButton(
-			"New Row", "btn btn-warning btn-sm m-3", "f2()"));
-	functionButtonRow.appendChild(createButton(
-			"Skip Level", "btn btn-light m-3", "f4()"));
+			"Increase Difficulty", "btn btn-light m-3", "f4()"));
 	headDiv.appendChild(functionButtonRow);
 }
 
@@ -272,7 +272,7 @@ function f4() {
 		win();
 	} else {
 		fillAllRandom();
-		setStatusText("Level Skipped");
+		setStatusText("Difficulty Increased");
 	}
 	fillAllRandom();
 }
@@ -328,6 +328,16 @@ function createProgressBar(id, color, value) {
 }
 
 // setter functions
+
+function setButtonSelected(x, y) {
+	let button = document.getElementById("img_" + x + "_" + y);
+	button.setAttribute("src", "images/" + getButtonColor(x, y) + "_selected" + ".jpg");
+}
+
+function setButtonDeselected(x, y) {
+	let button = document.getElementById("img_" + x + "_" + y);
+	button.setAttribute("src", "images/" + getButtonColor(x, y) + ".jpg");
+}
 
 function setButtonColor(x, y, color) {
 	let button = document.getElementById("img_" + x + "_" + y);
@@ -440,12 +450,14 @@ function logLastClicked() {
 // runs when button in grid is clicked
 function buttonClicked(x, y) {
 	setStatusText("Button (" + x + ", " + y + ") clicked");
-	if (clickHistory.length > 0) {	
+	setButtonSelected(x,y);
+	if (clickHistory.length > 0) {
 		// gets coordinates of last button pressed
 		let lastx = Math.floor(getLastClicked() / 8);
 		let lasty = (getLastClicked() % 8);	
 		let lastColor = getButtonColor(lastx, lasty);
 		let currentColor = getButtonColor(x, y);
+		setButtonDeselected(lastx, lasty);
 		// if button 
 		if (canSwap(x, y, lastx, lasty)) {
 			swap(x, y, lastx, lasty, currentColor, lastColor);
@@ -468,7 +480,7 @@ function checkWinCondition() {
 			win();
 		} else {
 			fillAllRandom();
-			setStatusText("Next level");
+			setStatusText("Difficulty Increased");
 		}
 	}
 }
@@ -478,7 +490,7 @@ function win() {
 	if (matchCondition < 6) {
 		++matchCondition;
 		fillAllRandom();
-		setStatusText("YOU WON NEW LEVELS UNLOCKED: Match-" + matchCondition);
+		setStatusText("New Mode: Match-" + matchCondition);
 	} else {
 		setStatusText("YOU BEAT THE GAME CHEATER!");
 	}
